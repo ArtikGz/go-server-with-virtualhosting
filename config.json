@@ -1,14 +1,14 @@
 [
 	{
 		"host": "localhost",
-		"filepath": "./templates/index.html"
+		"path": "templates/localhost"
 	},
 	{
 		"host": "akali",
-		"filepath": "<h1>akali</h1>"
+		"path": "templates/akali"
 	},
 	{
 		"host": "akali.local",
-		"filepath": "<h1>akali.local</h1>"
+		"path": "templates/akalilocal"
 	}
 ]
