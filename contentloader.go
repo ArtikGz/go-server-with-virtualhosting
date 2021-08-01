@@ -8,7 +8,7 @@ import (
 
 // TODO: FIX DIRECTORY PATH TRAVERSAL
 func serveDirectory(httpHeaders HttpHeaders) (string, string) {
-	templateFolder := getTemplateFolderFromVirtualhost(httpHeaders.Host)
+	templateFolder, templateError := getTemplateFolderFromVirtualhost(httpHeaders.Host)
 	templateFile := httpHeaders.Path
 	if templateFile == "/" {
 		templateFile = "/index.html" // TODO: This is temporary
@@ -17,10 +17,10 @@ func serveDirectory(httpHeaders HttpHeaders) (string, string) {
 
 	statusCode := 200
 	if err != nil {
-		template, err = readFile(GlobalConfig.ErrorTemplate)
+		template, err = readFile(templateError)
 		statusCode = 404
 		if err != nil {
-			log.Fatal("You should have 404.html on templates folder")
+			log.Fatal("You need to have an ErrorFile defined for each virtualhost on your config")
 		}
 	}
 
@@ -37,15 +37,16 @@ func serveDirectory(httpHeaders HttpHeaders) (string, string) {
 	return template, header
 }
 
-// RETURN: HEADER - CONTENT - ERROR
-func getTemplateFolderFromVirtualhost(host string) string {
+// RETURN template, errorTemplate
+func getTemplateFolderFromVirtualhost(host string) (string, string) {
 	for _, matcher := range GlobalConfig.Matchers {
 		if matcher.Matches(host) {
-			return matcher.Path
+			return matcher.Path, matcher.ErrorFile
 		}
 	}
 
-	return GlobalConfig.DefaultTemplateFolder
+	defaultMatcher := GlobalConfig.DefaultMatcher
+	return defaultMatcher.Path, defaultMatcher.ErrorFile
 }
 
 func readFile(Path string) (string, error) {

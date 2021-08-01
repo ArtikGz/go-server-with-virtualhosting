@@ -12,9 +12,15 @@ type Address struct {
 
 // TODO: Address.parseString()
 
+type DefaultMatch struct {
+	Path      string `json:"path"`
+	ErrorFile string `json:"errorfile"`
+}
+
 type Match struct {
-	Host string `json:"host"`
-	Path string `json:"path"`
+	Host      string `json:"host"`
+	Path      string `json:"path"`
+	ErrorFile string `json:"errorfile"`
 }
 
 func (m Match) Matches(host string) bool {
@@ -48,7 +54,6 @@ func (httpHeaders *HttpHeaders) fromStringArray(headers []string) error {
 }
 
 type Config struct {
-	ErrorTemplate         string  `json:"ErrorTemplate"`
-	DefaultTemplateFolder string  `json:"DefaultTemplateFolder"`
-	Matchers              []Match `json:"Matchers"`
+	DefaultMatcher DefaultMatch `json:"DefaultMatcher"`
+	Matchers       []Match      `json:"Matchers"`
 }

@@ -68,7 +68,6 @@ func getHttpHeaders(conn net.Conn) HttpHeaders {
 	return toReturn
 }
 
-// TODO: make a config struct to make configuration more scalable
 func loadConfig() Config {
 	data, err := ioutil.ReadFile(CONFIG_PATH)
 	if err != nil {
