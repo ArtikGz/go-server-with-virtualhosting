@@ -7,36 +7,48 @@ import (
 )
 
 // TODO: FIX DIRECTORY PATH TRAVERSAL
-func serveDirectory(httpHeaders HttpHeaders) string {
-	templateFolder, err := getTemplateFolderFromVirtualhost(httpHeaders.Host)
-	if err != nil {
-		log.Fatal(err)
-	}
+func serveDirectory(httpHeaders HttpHeaders) (string, string) {
+	templateFolder := getTemplateFolderFromVirtualhost(httpHeaders.Host)
 	templateFile := httpHeaders.Path
-	templateDir := templateFolder + templateFile
-	template, err := readHTML(templateDir)
+	if templateFile == "/" {
+		templateFile = "/index.html" // TODO: This is temporary
+	}
+	template, err := readFile(templateFolder + templateFile)
+
+	statusCode := 200
 	if err != nil {
-		template, err = readHTML(ERROR_PAGE_404)
+		template, err = readFile(GlobalConfig.ErrorTemplate)
+		statusCode = 404
 		if err != nil {
 			log.Fatal("You should have 404.html on templates folder")
 		}
 	}
 
-	return template
+	var header string
+	switch statusCode {
+	case 200:
+		header = HTTP_HEADER_STATUS_OK
+	case 404:
+		header = HTTP_HEADER_STATUS_NOT_FOUND
+	default:
+		header = HTTP_HEADER_STATUS_NOT_FOUND
+	}
+
+	return template, header
 }
 
 // RETURN: HEADER - CONTENT - ERROR
-func getTemplateFolderFromVirtualhost(host string) (string, error) {
-	for _, matcher := range global_config {
+func getTemplateFolderFromVirtualhost(host string) string {
+	for _, matcher := range GlobalConfig.Matchers {
 		if matcher.Matches(host) {
-			return matcher.Path, nil
+			return matcher.Path
 		}
 	}
 
-	return "", fmt.Errorf("Not found")
+	return GlobalConfig.DefaultTemplateFolder
 }
 
-func readHTML(Path string) (string, error) {
+func readFile(Path string) (string, error) {
 	html, err := ioutil.ReadFile(Path)
 	if err != nil {
 		log.Printf("Can't read file: %s", err)

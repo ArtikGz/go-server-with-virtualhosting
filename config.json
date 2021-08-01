@@ -1,14 +1,14 @@
-[
-	{
-		"host": "localhost",
-		"path": "templates/localhost"
-	},
-	{
-		"host": "akali",
-		"path": "templates/akali"
-	},
-	{
-		"host": "akali.local",
-		"path": "templates/akalilocal"
-	}
-]
+{
+	"ErrorTemplate": "templates/404.html",
+	"DefaultTemplateFolder": "templates/localhost",
+	"Matchers": [
+		{
+			"host": "localhost",
+			"path": "templates/localhost"
+		},
+		{
+			"host": "akali",
+			"path": "templates/akali"
+		}
+	]
+}

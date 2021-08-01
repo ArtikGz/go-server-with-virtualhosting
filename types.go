@@ -46,3 +46,9 @@ func (httpHeaders *HttpHeaders) fromStringArray(headers []string) error {
 	}
 	return nil
 }
+
+type Config struct {
+	ErrorTemplate         string  `json:"ErrorTemplate"`
+	DefaultTemplateFolder string  `json:"DefaultTemplateFolder"`
+	Matchers              []Match `json:"Matchers"`
+}
