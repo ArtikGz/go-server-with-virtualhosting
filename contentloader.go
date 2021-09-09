@@ -17,7 +17,7 @@ func serveDirectory(httpHeaders HttpHeaders) (string, string) {
 
 	statusCode := 200
 	if err != nil {
-		template, err = readFile(templateError)
+		template, err = readFile(templateFolder + templateError)
 		statusCode = 404
 		if err != nil {
 			log.Fatal("You need to have an ErrorFile defined for each virtualhost on your config")
@@ -37,23 +37,21 @@ func serveDirectory(httpHeaders HttpHeaders) (string, string) {
 	return template, header
 }
 
-// RETURN template, errorTemplate
 func getTemplateFolderFromVirtualhost(host string) (string, string) {
-	for _, matcher := range GlobalConfig.Matchers {
-		if matcher.Matches(host) {
-			return matcher.Path, matcher.ErrorFile
+	for _, vhost := range GlobalConfig.VHosts {
+		if vhost.Name == host {
+			return vhost.Path, vhost.Default
 		}
 	}
 
-	defaultMatcher := GlobalConfig.DefaultMatcher
-	return defaultMatcher.Path, defaultMatcher.ErrorFile
+	return GlobalConfig.Default, "/index.html"
 }
 
 func readFile(Path string) (string, error) {
 	html, err := ioutil.ReadFile(Path)
 	if err != nil {
 		log.Printf("Can't read file: %s", err)
-		return "Couldn't serve this to you :(", fmt.Errorf("File don't exist")
+		return "Couldn't serve this to you :(", fmt.Errorf("file don't exist")
 	}
 
 	return string(html), nil

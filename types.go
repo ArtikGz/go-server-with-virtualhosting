@@ -5,32 +5,7 @@ import (
 	"strings"
 )
 
-type Address struct {
-	host string
-	port string
-}
-
-// TODO: Address.parseString()
-
-type DefaultMatch struct {
-	Path      string `json:"path"`
-	ErrorFile string `json:"errorfile"`
-}
-
-type Match struct {
-	Host      string `json:"host"`
-	Path      string `json:"path"`
-	ErrorFile string `json:"errorfile"`
-}
-
-func (m Match) Matches(host string) bool {
-	if m.Host == host {
-		return true
-	}
-
-	return false
-}
-
+// TODO add TLS and http/2
 type HttpHeaders struct {
 	Path string // GET /(path) HTTP/v
 	Host string
@@ -39,7 +14,7 @@ type HttpHeaders struct {
 func (httpHeaders *HttpHeaders) fromStringArray(headers []string) error {
 	splitted := strings.Split(headers[0], " ") // headers[0] expected to be  'GET /(path) HTTP'
 	if len(splitted) != 3 && splitted[0] == "GET" {
-		return fmt.Errorf("Invalid header")
+		return fmt.Errorf("invalid header")
 	}
 	httpHeaders.Path = splitted[1]
 
@@ -51,9 +26,4 @@ func (httpHeaders *HttpHeaders) fromStringArray(headers []string) error {
 		}
 	}
 	return nil
-}
-
-type Config struct {
-	DefaultMatcher DefaultMatch `json:"DefaultMatcher"`
-	Matchers       []Match      `json:"Matchers"`
 }

@@ -2,41 +2,48 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"log"
 	"net"
 	"strings"
 	"time"
+	"virtualhostingserver/common"
 )
 
 const (
 	HTTP_HEADER_STATUS_OK        = "HTTP/1.1 200 OK\n\r\n\r"
 	HTTP_HEADER_STATUS_NOT_FOUND = "HTTP/1.1 404 Not Found\n\r\n\r"
-	CONFIG_PATH                  = "config.json"
 )
 
-var GlobalConfig Config
+var GlobalConfig common.Config
+
+func init() {
+	var err error
+	GlobalConfig, err = common.ReadConfig("config.yml")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 func main() {
-	GlobalConfig = loadConfig()
-	listener, err := net.Listen("tcp", ":8000")
+	listenAddr := fmt.Sprintf("%s:%d", GlobalConfig.IP, GlobalConfig.Port)
+	listener, err := net.Listen("tcp", listenAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for {
 		conn, err := listener.Accept()
-		conn.SetDeadline(time.Now().Add(time.Second * 60)) // Set timeout to 1 minute
 		if err != nil {
 			log.Println(err)
 		}
+		conn.SetDeadline(time.Now().Add(time.Second * GlobalConfig.Timeout))
 
-		go handleTest(conn)
+		go handleConnection(conn)
 	}
 }
 
-func handleTest(conn net.Conn) {
+func handleConnection(conn net.Conn) {
 	defer conn.Close()
 	httpHeaders := getHttpHeaders(conn)
 
@@ -44,18 +51,18 @@ func handleTest(conn net.Conn) {
 	conn.Write([]byte(headerStatus + template + "\n\r"))
 }
 
-// Move all below this to a 'package parsers'
+// TODO: Move all below this to a 'package parsers'
 func getHttpHeaders(conn net.Conn) HttpHeaders {
 	reader := bufio.NewReader(conn)
 	var results []string
-	moreLinesToRead := true
-	for moreLinesToRead {
+	areMoreLinesToRead := true
+	for areMoreLinesToRead {
 		line, _, err := reader.ReadLine()
-		moreLinesToRead = strings.IndexByte(string(line), ' ') != -1
 		if err != nil {
 			log.Fatal("Couldn't read from connection")
 		}
 
+		areMoreLinesToRead = strings.IndexByte(string(line), ' ') != -1
 		results = append(results, string(line))
 	}
 
@@ -66,19 +73,4 @@ func getHttpHeaders(conn net.Conn) HttpHeaders {
 	}
 
 	return toReturn
-}
-
-func loadConfig() Config {
-	data, err := ioutil.ReadFile(CONFIG_PATH)
-	if err != nil {
-		log.Fatalf("Couldn't load config: %s", err)
-	}
-
-	var config Config
-	err = json.Unmarshal(data, &config)
-	if err != nil {
-		log.Fatalf("Couldn't load config: %s", err)
-	}
-
-	return config
 }
